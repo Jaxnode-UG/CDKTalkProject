@@ -55,6 +55,14 @@ export class CdkTypescriptStack extends Stack {
 
     const postsDS = api.addDynamoDbDataSource('postsTable', postsTable);
 
+    // get list of posts
+    postsDS.createResolver({
+      typeName: 'Query',
+      fieldName: 'getPosts',
+      requestMappingTemplate: appsync.MappingTemplate.dynamoDbScanTable(),
+      responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultList()
+    });
+
     // create post
     postsDS.createResolver({
       typeName: 'Mutation',

@@ -4,7 +4,7 @@ schema {
 }
 
 type Query {
-  getPosts: PostsPage!
+  getPosts: [Post!]!
 }
 
 type Mutation {
@@ -16,9 +16,4 @@ type Post {
   title: String!
   text: String!
   createdAt: AWSDateTime!
-}
-
-type PostsPage {
-  posts: [Post!]!
-  nextToken: String
 }

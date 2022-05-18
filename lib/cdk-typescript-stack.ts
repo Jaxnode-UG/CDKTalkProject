@@ -1,16 +1,50 @@
-import { Stack, StackProps } from 'aws-cdk-lib';
+//import * as appsync from '@aws-cdk/aws-appsync';
+import * as appsync from '@aws-cdk/aws-appsync-alpha';
+
+import { Stack, StackProps, CfnOutput } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
+import { aws_cognito as cognito } from 'aws-cdk-lib';
+
 
 export class CdkTypescriptStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    // The code that defines your stack goes here
+    const userPool = new cognito.UserPool(this, 'CdkAuth', {
+      userPoolName: 'CdkAuth',
+      selfSignUpEnabled: true,
+      signInAliases: {
+        email: true
+      }
+    });
 
-    // example resource
-    // const queue = new sqs.Queue(this, 'CdkTypescriptQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
+    const webClient = userPool.addClient('web', {
+      userPoolClientName: 'web',
+      authFlows: {
+        userPassword: true,
+        userSrp: true
+      }
+    });
+
+    const api = new appsync.GraphqlApi(this, 'ContractsApi', {
+      name: 'contracts-api',
+      schema: appsync.Schema.fromAsset('schema.api.graphql'),
+      authorizationConfig: {
+        defaultAuthorization: {
+          authorizationType: appsync.AuthorizationType.USER_POOL,
+          userPoolConfig: {
+            userPool
+          }
+        },
+      },
+      
+      logConfig: {
+        fieldLogLevel: appsync.FieldLogLevel.ALL
+      },
+      xrayEnabled: true,
+    });
+
+    new CfnOutput(this, 'GraphQL_URL', { value: api.graphqlUrl });
+    
   }
-}
+};

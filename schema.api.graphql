@@ -1,0 +1,24 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Query {
+  getPosts: PostsPage!
+}
+
+type Mutation {
+  createPost(title: String!, text: String!): Post!
+}
+
+type Post {
+  id: ID!
+  title: String!
+  text: String!
+  createdAt: AWSDateTime!
+}
+
+type PostsPage {
+  posts: [Post!]!
+  nextToken: String
+}

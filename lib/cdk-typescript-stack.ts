@@ -8,11 +8,9 @@ import {
   aws_dynamodb as dynamodb,
   aws_ec2 as ec2,
   aws_ecs as ecs,
-  aws_iam as iam,
+  aws_ecs_patterns as ecs_patterns,
   aws_lambda as lambda
 } from 'aws-cdk-lib';
-
-import * as path from 'path';
 
 
 export class CdkTypescriptStack extends Stack {
@@ -97,6 +95,19 @@ export class CdkTypescriptStack extends Stack {
 
     // create a vpc, subnets, and natgateways
     const vpc = new ec2.Vpc(this, 'VpcForFargate');
+
+    const cluster = new ecs.Cluster(this, "EcsClusterForFargate", {
+      vpc
+    });
+
+    const fargateService = new ecs_patterns.ApplicationLoadBalancedFargateService(this, "CdkFargateService", {
+      cluster,
+      cpu: 256,
+      memoryLimitMiB: 512,
+      taskImageOptions: {
+        image: ecs.ContainerImage.fromRegistry('public.ecr.aws/nginx/nginx:latest')
+      }
+    });
 
     new CfnOutput(this, 'GraphQL_URL', { value: api.graphqlUrl });
     

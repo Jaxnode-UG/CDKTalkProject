@@ -16,6 +16,7 @@ export class CdkTypescriptStack extends Stack {
 
     const postsTable = new dynamodb.Table(this, 'PostsTable', {
       partitionKey: {name: 'id', type: dynamodb.AttributeType.STRING},
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       replicationRegions: ['us-east-1']
     });
 
@@ -35,8 +36,8 @@ export class CdkTypescriptStack extends Stack {
       }
     });
 
-    const api = new appsync.GraphqlApi(this, 'ContractsApi', {
-      name: 'contracts-api',
+    const api = new appsync.GraphqlApi(this, 'CdkApi', {
+      name: 'cdk-api',
       schema: appsync.Schema.fromAsset('schema.api.graphql'),
       authorizationConfig: {
         defaultAuthorization: {

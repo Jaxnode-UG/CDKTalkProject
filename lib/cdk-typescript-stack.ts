@@ -95,6 +95,9 @@ export class CdkTypescriptStack extends Stack {
       responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem()
     });
 
+    // create a vpc, subnets, and natgateways
+    const vpc = new ec2.Vpc(this, 'VpcForFargate');
+
     new CfnOutput(this, 'GraphQL_URL', { value: api.graphqlUrl });
     
   }

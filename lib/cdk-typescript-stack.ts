@@ -6,8 +6,13 @@ import { Construct } from 'constructs';
 import { 
   aws_cognito as cognito, 
   aws_dynamodb as dynamodb,
-  aws_lambda as lambda 
+  aws_ec2 as ec2,
+  aws_ecs as ecs,
+  aws_iam as iam,
+  aws_lambda as lambda
 } from 'aws-cdk-lib';
+
+import * as path from 'path';
 
 
 export class CdkTypescriptStack extends Stack {
@@ -19,6 +24,17 @@ export class CdkTypescriptStack extends Stack {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       replicationRegions: ['us-east-1']
     });
+
+    const getListLambda = new lambda.Function(this, 'CdkListFunction', {
+      runtime: lambda.Runtime.NODEJS_16_X,
+      code: lambda.Code.fromAsset('lambdas'),
+      handler: 'get-list.handler',
+      environment: {
+        POSTS_TABLE: postsTable.tableName
+      }
+    });
+
+    postsTable.grantReadData(getListLambda);
 
     const userPool = new cognito.UserPool(this, 'CdkAuth', {
       userPoolName: 'CdkAuth',
@@ -55,14 +71,21 @@ export class CdkTypescriptStack extends Stack {
     });
 
     const postsDS = api.addDynamoDbDataSource('postsTable', postsTable);
+    const getListFunctionDS = api.addLambdaDataSource('getListFunction', getListLambda);
+
+    // get list of posts with a lambda
+    getListFunctionDS.createResolver({
+      typeName: 'Query',
+      fieldName: 'getPosts'
+    });
 
     // get list of posts
-    postsDS.createResolver({
-      typeName: 'Query',
-      fieldName: 'getPosts',
-      requestMappingTemplate: appsync.MappingTemplate.dynamoDbScanTable(),
-      responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultList()
-    });
+    // postsDS.createResolver({
+    //   typeName: 'Query',
+    //   fieldName: 'getPosts',
+    //   requestMappingTemplate: appsync.MappingTemplate.dynamoDbScanTable(),
+    //   responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultList()
+    // });
 
     // create post
     postsDS.createResolver({

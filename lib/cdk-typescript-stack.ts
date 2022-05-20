@@ -9,7 +9,8 @@ import {
   aws_ec2 as ec2,
   aws_ecs as ecs,
   aws_ecs_patterns as ecs_patterns,
-  aws_lambda as lambda
+  aws_lambda as lambda,
+  RemovalPolicy
 } from 'aws-cdk-lib';
 
 
@@ -20,7 +21,8 @@ export class CdkTypescriptStack extends Stack {
     const postsTable = new dynamodb.Table(this, 'PostsTable', {
       partitionKey: {name: 'id', type: dynamodb.AttributeType.STRING},
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      replicationRegions: ['us-east-1']
+      replicationRegions: ['us-east-1'],
+      removalPolicy: RemovalPolicy.DESTROY // destroys table when removed from stack
     });
 
     const getListLambda = new lambda.Function(this, 'CdkListFunction', {
